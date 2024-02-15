@@ -18,10 +18,7 @@ contract Token {
     ) {
         tokenName = _name;
         tokenSymbol = _symbol;
-        tokenTotalSupply = _totalSupply * (10 ** 18);
-        balances[msg.sender] = _totalSupply;
         _mint(msg.sender, _totalSupply);
-        // owner = msg.sender;
     }
 
     event Transfer(
@@ -82,7 +79,7 @@ contract Token {
 
         return true;
     }
-    
+
     function approve(
         address _owner,
         address _withdrawer,
@@ -136,7 +133,7 @@ contract Token {
     }
 
     function _mint(address _owner, uint256 _amount) internal {
-        require(owner != address(0), "Wrong address");
+        require(_owner != address(0), "Wrong address");
         tokenTotalSupply = _amount * (10 ** 18);
         balances[msg.sender] = _amount * (10 ** 18);
 
