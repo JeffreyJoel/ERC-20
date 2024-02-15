@@ -18,9 +18,10 @@ contract Token {
     ) {
         tokenName = _name;
         tokenSymbol = _symbol;
-        tokenTotalSupply = _totalSupply;
+        tokenTotalSupply = _totalSupply * (10 ** 18);
         balances[msg.sender] = _totalSupply;
-        owner = msg.sender;
+        _mint(msg.sender, _totalSupply);
+        // owner = msg.sender;
     }
 
     event Transfer(
@@ -33,7 +34,7 @@ contract Token {
         address indexed _withdrawer,
         uint256 amount
     );
-        event TransferFrom(
+    event TransferFrom(
         address indexed owner,
         address indexed _withdrawer,
         uint256 amount
@@ -70,15 +71,18 @@ contract Token {
             "You cannot transfer more than the current supply"
         );
         require(_receiver != address(0), "Wrong address");
-        balances[msg.sender] = balances[msg.sender] - _amount;
+
+        uint256 transferFee = (_amount * 10) / 100;
+
+        balances[msg.sender] = balances[msg.sender] - (_amount + transferFee);
         balances[_receiver] = balances[_receiver] + _amount;
+        _burn(msg.sender, (transferFee));
 
         emit Transfer(msg.sender, _receiver, _amount);
 
         return true;
     }
-
-    //This function allows a spender transf
+    
     function approve(
         address _owner,
         address _withdrawer,
@@ -107,12 +111,35 @@ contract Token {
             "You cannot transfer more than the current supply"
         );
         require(_receiver != address(0), "Wrong address");
-        balances[_owner] = balances[_owner] - _amount;
-        amountAllowed[_owner][msg.sender] - amountAllowed[_owner][msg.sender];
+
+        uint256 transferFee = (_amount * 10) / 100;
+
+        balances[_owner] = balances[_owner] - (_amount + transferFee);
+
+        amountAllowed[_owner][msg.sender] =
+            amountAllowed[_owner][msg.sender] -
+            _amount;
+
         balances[_receiver] = balances[_receiver] + _amount;
+
+        _burn(_owner, (transferFee));
 
         emit TransferFrom(msg.sender, _receiver, _amount);
 
         return true;
+    }
+
+    function _burn(address _owner, uint256 _amount) internal {
+        tokenTotalSupply = tokenTotalSupply - _amount;
+
+        emit Transfer(_owner, address(0), _amount);
+    }
+
+    function _mint(address _owner, uint256 _amount) internal {
+        require(owner != address(0), "Wrong address");
+        tokenTotalSupply = _amount * (10 ** 18);
+        balances[msg.sender] = _amount * (10 ** 18);
+
+        emit Transfer(address(0), _owner, _amount * (10 ** 18));
     }
 }
